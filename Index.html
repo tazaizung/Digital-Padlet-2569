@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Padlet</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root { --bg-padlet: #f4d9dc; --padlet-font: 'Prompt', sans-serif;} 
+    body { font-family: var(--padlet-font); background-color: var(--bg-padlet); height: 100vh; overflow: hidden; margin: 0; transition: background 0.3s;}
+    
+    .auth-container { height: 100vh; display: flex; justify-content: center; align-items: center; }
+    .auth-card { background: #fff; border-radius: 20px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); text-align: center; }
+    .auth-title { font-size: 1.8rem; font-weight: 700; color: #222; margin-bottom: 5px; }
+    .auth-subtitle { color: #666; margin-bottom: 25px; font-size: 0.95rem; }
+    .auth-input { border-radius: 12px; padding: 12px 15px; background: #f8f9fa; border: 1px solid #eee; margin-bottom: 15px; width: 100%; }
+    .auth-input:focus { background: #fff; border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); outline: none;}
+    .auth-btn { background: #222; color: #fff; border-radius: 12px; padding: 12px; font-weight: 600; width: 100%; border: none; transition: 0.2s; }
+    .auth-btn:hover { background: #444; }
+    .auth-link { color: #2563eb; cursor: pointer; text-decoration: underline; font-size: 0.9rem; font-weight: 500;}
+
+    .top-action-bar { display: flex; gap: 10px; align-items: center; }
+    .action-pill { background: rgba(255,255,255,0.4); border: none; border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 5px; color: #333; font-weight: 600; cursor: pointer; transition: 0.2s;}
+    .action-pill:hover { background: rgba(255,255,255,0.7); }
+    .action-circle { background: rgba(255,255,255,0.4); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: #333; cursor: pointer; transition: 0.2s;}
+    .action-circle:hover { background: rgba(255,255,255,0.7); }
+    .header-divider { width: 1px; height: 20px; background-color: rgba(0,0,0,0.1); margin: 0 5px; }
+
+    .board-header-area { padding: 20px 40px 10px 40px; display: flex; justify-content: space-between; align-items: flex-start; height: 120px;}
+    .board-author { font-size: 0.9rem; color: #555; margin-bottom: 5px; }
+    .board-title { font-size: 2rem; font-weight: 700; color: #222; margin: 0; }
+    .board-desc { font-size: 1rem; color: #444; margin-top: 5px; }
+    .back-btn { background: rgba(255,255,255,0.5); border-radius: 12px; border: none; font-size: 0.9rem; color: #333; cursor: pointer; padding: 4px 10px; margin-bottom: 10px; font-weight: bold; transition: 0.2s;}
+    .back-btn:hover { background: rgba(255,255,255,0.8); }
+
+    .board-scroll-area { display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding: 10px 40px; height: calc(100vh - 130px); align-items: stretch; }
+    .board-scroll-area::-webkit-scrollbar { height: 12px; }
+    .board-scroll-area::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.15); border-radius: 10px; }
+    
+    .column-wrapper { min-width: 320px; max-width: 320px; margin-right: 20px; display: flex; flex-direction: column; max-height: 100%; }
+    .column-header { background: rgba(255,255,255,0.8); border-radius: 8px; padding: 12px 15px; font-weight: 600; font-size: 1.1rem; color: #222; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex-shrink: 0;}
+    .section-title { outline: none; cursor: text; padding: 2px 6px; margin-left: -6px; border-radius: 6px; transition: 0.2s; white-space: nowrap; overflow: hidden; max-width: 240px; display: inline-block; text-overflow: ellipsis; }
+    .section-title:hover { background-color: rgba(0,0,0,0.05); }
+    .section-title:focus { background-color: #ffffff; box-shadow: 0 0 0 2px #2563eb; text-overflow: clip; overflow: visible; white-space: normal; }
+
+    .column-add-btn { background: rgba(255,255,255,0.5); border-radius: 8px; text-align: center; cursor: pointer; padding: 10px; margin-bottom: 15px; color: #666; transition: 0.2s; flex-shrink: 0;}
+    .column-add-btn:hover { background: #fff; }
+
+    .column-posts-area { flex: 1; overflow-y: auto; overflow-x: hidden; padding-right: 6px; padding-bottom: 20px; scroll-behavior: smooth; }
+    .column-posts-area::-webkit-scrollbar { width: 6px; }
+    .column-posts-area::-webkit-scrollbar-thumb { background-color: rgba(0,0,0,0.25); border-radius: 10px; }
+    .column-posts-area::-webkit-scrollbar-track { background: transparent; }
+    
+    .post-card { position: relative; border-radius: 12px; padding: 15px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.05); transition: 0.3s;}
+    .note-white { background-color: #fff; } .note-yellow { background-color: #fef08a; } .note-blue { background-color: #bfdbfe; } .note-green { background-color: #bbf7d0; } .note-pink { background-color: #fbcfe8; } .note-purple { background-color: #e9d5ff; }
+
+    .pinned-indicator { position: absolute; top: -12px; left: -12px; background: #e11d48; color: white; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; z-index: 10; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.15); transform: rotate(-20deg);}
+    .can-drag { cursor: grab; } .can-drag:active { cursor: grabbing; }
+
+    .post-card.size-wide { padding: 20px; }
+    .post-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .avatar { width: 32px; height: 32px; border-radius: 50%; background-color: #6366f1; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 10px; font-size: 14px;}
+    .user-text h6 { margin: 0; font-size: 0.9rem; font-weight: 700; color: #222; }
+    .user-text small { color: #888; font-size: 0.8rem; }
+    
+    .post-subject { font-size: 1.1rem; font-weight: 700; color: #111; margin-bottom: 5px; }
+
+    .post-message { font-size: 0.95rem; color: #333; margin-bottom: 15px; word-wrap: break-word;}
+    .post-message p { margin-bottom: 8px; }
+    .post-message p:last-child { margin-bottom: 0; }
+    .post-message strong { font-weight: 700; color: #000; }
+    .post-message em { font-style: italic; }
+    .post-message ul, .post-message ol { padding-left: 20px; margin-bottom: 8px; }
+    .post-message li { margin-bottom: 4px; }
+    .post-message blockquote { border-left: 3px solid rgba(0,0,0,0.2); padding-left: 10px; color: #555; margin-bottom: 8px; }
+    .post-message code { background-color: rgba(0,0,0,0.05); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.85em; color: #d946ef;}
+    
+    .markdown-hint { font-size: 0.75rem; color: #6b7280; margin-top: 5px; display: flex; align-items: center; gap: 5px; }
+
+    .post-image { max-height: 250px; width: 100%; object-fit: contain; border-radius: 8px; margin-bottom: 12px; border: 1px solid rgba(0,0,0,0.1); background-color: rgba(0,0,0,0.02);}
+    .attachment-box { background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; padding: 10px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+    .attachment-box a { text-decoration: none; color: #333; font-weight: 500; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .rich-link-card { display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; text-decoration: none; color: inherit; background: rgba(255,255,255,0.7); transition: 0.2s; margin-bottom: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);}
+    .rich-link-card:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.08); background: #fff;}
+    .rich-link-img { width: 100%; height: 140px; object-fit: cover; background: #f8f9fa; border-bottom: 1px solid rgba(0,0,0,0.05);}
+    .rich-link-content { padding: 12px; }
+    .rich-link-title { font-weight: 700; font-size: 0.9rem; color: #111; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .rich-link-desc { font-size: 0.8rem; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 6px;}
+    .rich-link-url { font-size: 0.7rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .post-actions { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; color: #666;}
+    .action-icon { display: flex; align-items: center; gap: 5px; cursor: pointer; transition: 0.2s;}
+    .action-icon:hover { transform: scale(1.1); }
+    
+    .inline-comments-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+    .inline-comment-item { background-color: rgba(255,255,255,0.6); padding: 8px 12px; border-radius: 12px; font-size: 0.85rem; color: #333;}
+    .inline-comment-name { font-weight: 700; color: #111; margin-right: 4px; }
+    .inline-comment-btn { border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px; color: #888; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px;}
+    .inline-comment-btn:hover { color: #333; }
+    .inline-comment-btn .icon-circle { background: rgba(0,0,0,0.05); border-radius: 50%; padding: 2px;}
+
+    .add-section-btn { min-width: 120px; background: rgba(255,255,255,0.6); border-radius: 20px; text-align: center; padding: 10px 15px; cursor: pointer; color: #555; font-weight: 600; height: fit-content; flex-shrink:0;}
+    
+    .post-modal-content { border-radius: 16px; border: none; }
+    .post-modal-header { display: flex; justify-content: space-between; padding: 15px 20px; align-items: center;}
+    .btn-publish { background: #f3f4f6; color: #9ca3af; border: none; border-radius: 20px; padding: 6px 20px; font-weight: 600; transition: 0.2s; }
+    .btn-publish.active { background: #2563eb; color: #fff; }
+    
+    .modal-attach-area { border: 2px dashed #e5e7eb; border-radius: 12px; padding: 20px; text-align: center; background: #fafafa; margin-bottom: 15px;}
+    .attach-icon-btn { width: 48px; height: 48px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin: 0 8px; cursor: pointer; transition: 0.2s;}
+    .attach-icon-btn:hover { transform: scale(1.1); }
+    .icon-file { background: #f3e8ff; color: #9333ea; } .icon-link { background: #fce7f3; color: #db2777; } .icon-image { background: #dbeafe; color: #2563eb; }
+    
+    .input-subject { border: none; font-size: 1.4rem; font-weight: 700; padding: 0; outline: none; box-shadow: none; margin-bottom: 10px;}
+    .input-body { border: none; font-size: 1rem; padding: 0; outline: none; box-shadow: none; resize: none; color: #4b5563;}
+    .post-modal-footer { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; border-top: 1px solid #f3f4f6;}
+    .dropdown-menu { border-radius: 12px; padding: 8px; }
+    .dropdown-item { border-radius: 6px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; }
+    .dropdown-item:hover { background-color: #fee2e2; color: #dc2626 !important; }
+    .dropdown-item.edit-btn:hover { background-color: #e0e7ff; color: #2563eb !important; }
+    
+    .offcanvas-settings { width: 400px; border-radius: 20px 0 0 20px; box-shadow: -5px 0 15px rgba(0,0,0,0.1); }
+    .setting-section { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 20px; }
+    .setting-label { font-weight: 600; color: #333; margin-bottom: 8px; font-size: 0.95rem; }
+    .btn-check:checked + .btn-outline-primary { background-color: #8b5cf6; border-color: #8b5cf6; color: white;}
+    .btn-outline-primary { border-color: #dee2e6; color: #555; }
+
+    .bg-option { cursor: pointer; transition: transform 0.2s; }
+    .bg-option:hover { transform: scale(1.1); }
+    .bg-option.active { border-color: #2563eb !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.3); }
+    
+    .admin-page { background-color: #f1f5f9; height: 100vh; overflow-y: auto; padding-top: 40px; padding-bottom: 40px;}
+    .admin-card { background: #fff; border-radius: 16px; padding: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 25px;}
+    .stat-box { background: #f8fafc; border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #e2e8f0; }
+    .stat-num { font-size: 2.5rem; font-weight: 700; color: #2563eb; line-height: 1; margin-bottom: 5px; }
+
+    #customToast { position: fixed; bottom: 20px; right: 20px; min-width: 250px; z-index: 9999; transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); background: #333; color: white; padding: 15px 20px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; font-weight: 500;}
+    #customToast.show { transform: translateY(0); opacity: 1; }
+
+    @media print {
+      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+      body, #app-container, #page-board { height: auto !important; overflow: visible !important; background-color: #fff !important; }
+      .top-action-bar, .back-btn, .column-add-btn, .add-section-btn, .inline-comment-btn,
+      .dropdown, .modal, .offcanvas, .attach-icon-btn, .action-icon { display: none !important; }
+      .board-header-area { height: auto !important; padding: 10px 0 !important; }
+      .board-scroll-area { display: block !important; height: auto !important; overflow: visible !important; padding: 0 !important; }
+      .column-wrapper { width: 100% !important; max-width: 100% !important; margin: 0 0 30px 0 !important; page-break-inside: avoid; }
+      .column-posts-area { overflow: visible !important; height: auto !important; }
+      .post-card { page-break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; margin-bottom: 20px !important; }
+    }
+
+    /* CSS สำหรับจัดรูปแบบก่อนเรนเดอร์ PDF */
+    .pdf-export-mode { height: auto !important; overflow: visible !important; background-color: #fff !important; }
+    .pdf-export-mode #app-container, .pdf-export-mode #page-board { height: auto !important; overflow: visible !important; }
+    .pdf-export-mode .top-action-bar, .pdf-export-mode .back-btn, .pdf-export-mode .column-add-btn, .pdf-export-mode .add-section-btn, .pdf-export-mode .inline-comment-btn, .pdf-export-mode .action-icon { display: none !important; }
+    .pdf-export-mode .board-scroll-area { display: block !important; height: auto !important; overflow: visible !important; padding: 0 20px !important; }
+    .pdf-export-mode .column-wrapper { width: 100% !important; max-width: 100% !important; margin: 0 0 30px 0 !important; display: block; }
+    .pdf-export-mode .column-posts-area { overflow: visible !important; height: auto !important; max-height: none !important; display: block; }
+    .pdf-export-mode .post-card { page-break-inside: avoid; border: 1px solid #ccc !important; box-shadow: none !important; margin-bottom: 20px !important; }
+    .pdf-export-mode .board-header-area { height: auto !important; padding: 20px !important; }
+    
+    @media (max-width: 768px) {
+        .board-header-area { flex-direction: column; height: auto; padding: 20px; }
+        .top-action-bar { margin-top: 15px; flex-wrap: wrap; }
+        .board-scroll-area { padding: 10px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Alert Toast -->
+  <div id="customToast"><span class="material-icons text-info">info</span> <span id="toastMessage">Message</span></div>
+
+  <div id="app-container">
+    
+    <div id="page-password" class="page-section auth-container d-none">
+      <div class="auth-card">
+        <h2 class="auth-title">กระดานนี้ถูกล็อค 🔐</h2>
+        <p class="auth-subtitle">กรุณากรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+        <div class="mb-3"><input type="password" id="boardPasswordInput" class="form-control auth-input" placeholder="รหัสผ่าน..."></div>
+        <button class="auth-btn mb-3" onclick="submitBoardPassword()">เข้าสู่กระดาน</button>
+        <div class="text-muted small"><span class="auth-link" onclick="showPage('home')">← กลับหน้าหลัก</span></div>
+      </div>
+    </div>
+
+    <div id="page-forgot" class="page-section auth-container d-none">
+      <div class="auth-card">
+        <h2 class="auth-title">กู้คืนรหัสผ่าน</h2>
+        <p class="auth-subtitle">ฟังก์ชันนี้เป็นตัวอย่าง (Demo) ไม่มีการส่งอีเมลจริง</p>
+        <form id="forgotForm">
+          <input type="email" class="form-control auth-input" id="forgotEmail" placeholder="อีเมลของคุณ" required>
+          <button type="submit" class="auth-btn mb-3" id="forgotBtn">รีเซ็ตรหัสผ่าน</button>
+        </form>
+        <div class="text-muted small"><span class="auth-link" onclick="showPage('login')">← กลับไปหน้าเข้าสู่ระบบ</span></div>
+      </div>
+    </div>
+
+    <div id="page-login" class="page-section auth-container">
+      <div class="auth-card">
+        <h2 class="auth-title">ยินดีต้อนรับ</h2><p class="auth-subtitle">เข้าสู่ระบบเพื่อเริ่มทำงานร่วมกัน</p>
+        <form id="loginForm">
+          <input type="email" class="form-control auth-input" id="loginEmail" placeholder="อีเมล" required>
+          <input type="password" class="form-control auth-input" id="loginPassword" placeholder="รหัสผ่าน" required>
+          <div class="text-end mb-3"><span class="text-muted small auth-link" onclick="showPage('forgot')">ลืมรหัสผ่าน?</span></div>
+          <button type="submit" class="auth-btn" id="loginBtn">เข้าสู่ระบบ</button>
+        </form>
+        <div class="mt-4"><span class="text-muted small">ยังไม่มีบัญชีใช่ไหม? <span class="auth-link" onclick="showPage('register')">สมัครสมาชิก</span></span></div>
+      </div>
+    </div>
+
+    <div id="page-register" class="page-section auth-container d-none">
+      <div class="auth-card">
+        <h2 class="auth-title">สร้างบัญชีใหม่</h2><p class="auth-subtitle">เข้าร่วม Digital Padlet ได้ฟรี</p>
+        <form id="registerForm">
+          <input type="text" class="form-control auth-input" id="regName" placeholder="ชื่อ-นามสกุล (ที่ใช้แสดง)" required>
+          <input type="email" class="form-control auth-input" id="regEmail" placeholder="อีเมล" required>
+          <input type="password" class="form-control auth-input" id="regPassword" placeholder="ตั้งรหัสผ่าน" required>
+          <button type="submit" class="auth-btn" id="regBtn">สมัครสมาชิก</button>
+        </form>
+        <div class="mt-4"><span class="text-muted small">มีบัญชีอยู่แล้ว? <span class="auth-link" onclick="showPage('login')">เข้าสู่ระบบ</span></span></div>
+      </div>
+    </div>
+
+    <div id="page-home" class="page-section d-none pt-5 px-4 h-100 overflow-auto">
+      <div class="container-fluid max-w-7xl mx-auto pb-5">
+          <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+            <h3 class="fw-bold" style="color: #222;">กระดานกิจกรรมทั้งหมด</h3>
+            <div class="d-flex align-items-center gap-3">
+              <button id="createBoardBtn" class="btn rounded-pill fw-bold" style="background-color: #2563eb; color: #fff;" onclick="openCreateBoardModal()"><span class="material-icons align-middle fs-5">add</span> สร้างกระดาน</button>
+              <button id="adminPanelBtn" class="btn btn-dark rounded-pill d-none fw-bold" onclick="showPage('admin')"><span class="material-icons align-middle fs-5">admin_panel_settings</span> จัดการระบบ</button>
+              <div class="dropdown">
+                <div class="d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="dropdown"><span class="fw-bold text-dark" id="displayUserName">ผู้ใช้</span><div class="avatar shadow-sm m-0" id="displayUserAvatar">U</div></div>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0"><li><a class="dropdown-item text-danger fw-bold" href="#" onclick="logout()"><span class="material-icons align-middle">logout</span> ออกจากระบบ</a></li></ul>
+              </div>
+            </div>
+          </div>
+          <div class="row" id="board-list"></div>
+      </div>
+    </div>
+
+    <div class="modal fade" id="createBoardModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow" style="border-radius:16px;"><div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold">สร้างกระดานใหม่</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-white border-top mt-2"><form id="createBoardForm"><input type="text" class="form-control auth-input mb-3" id="newBoardName" placeholder="ชื่อกระดาน..." required><textarea class="form-control auth-input mb-3" id="newBoardDesc" placeholder="คำอธิบายสั้นๆ..." rows="2"></textarea><button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill py-2" style="background-color: #2563eb; border: none;" id="btnCreateBoardSubmit">เริ่มสร้างกระดาน</button></form></div></div></div></div>
+
+    <div id="page-admin" class="page-section admin-page d-none">
+      <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4"><h2 class="fw-bold">ระบบจัดการ (Admin Dashboard)</h2><button class="btn btn-outline-dark rounded-pill" onclick="showPage('home')">← กลับหน้าหลัก</button></div>
+        <div class="row mb-4" id="adminStats"><div class="col-md-4"><div class="stat-box"><div class="stat-num" id="statUsers">0</div><div class="text-muted fw-bold">สมาชิกทั้งหมด</div></div></div><div class="col-md-4"><div class="stat-box"><div class="stat-num" id="statBoards">0</div><div class="text-muted fw-bold">กระดานทั้งหมด</div></div></div><div class="col-md-4"><div class="stat-box"><div class="stat-num" id="statPosts">0</div><div class="text-muted fw-bold">โพสต์ทั้งหมด</div></div></div></div>
+        <div class="admin-card"><h5 class="fw-bold mb-3">จัดการกระดาน (Boards)</h5><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>ชื่อกระดาน</th><th>ผู้สร้าง</th><th>วันที่สร้าง</th><th>จัดการ</th></tr></thead><tbody id="adminBoardTable"><tr><td colspan="4" class="text-center">กำลังโหลดข้อมูล...</td></tr></tbody></table></div></div>
+        <div class="admin-card"><h5 class="fw-bold mb-3">รายชื่อสมาชิก (Users)</h5><div class="table-responsive"><table class="table table-hover align-middle"><thead class="table-light"><tr><th>ชื่อ-นามสกุล</th><th>อีเมล</th><th>บทบาท</th><th>จัดการ</th></tr></thead><tbody id="adminUserTable"><tr><td colspan="4" class="text-center">กำลังโหลดข้อมูล...</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+
+    <div id="page-board" class="page-section d-none">
+      <div class="board-header-area">
+        <div>
+          <button class="back-btn" onclick="showPage('home')">← กลับไปหน้าหลัก</button>
+          <div class="board-author" id="board-meta">System Admin • โหลดข้อมูล... </div>
+          <h2 class="board-title" id="current-board-title">Loading...</h2>
+          <div class="board-desc" id="current-board-desc"></div>
+        </div>
+        <div class="top-action-bar">
+          <button class="action-pill text-danger" onclick="exportToPDF()"><span class="material-icons">picture_as_pdf</span> ออกรายงาน PDF</button>
+          <button class="action-pill" onclick="openShareModal()"><span class="material-icons">reply</span> แชร์</button>
+          <button class="action-circle d-none" id="boardSettingsBtn" data-bs-toggle="offcanvas" data-bs-target="#settingsSidebar" onclick="loadSettingsToForm()"><span class="material-icons">settings</span></button>
+          <div class="header-divider"></div>
+          <div class="dropdown">
+            <div class="avatar shadow-sm m-0" style="cursor:pointer;" data-bs-toggle="dropdown" id="boardUserAvatar">U</div>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+              <li><h6 class="dropdown-header" id="boardUserNameMenu">ชื่อผู้ใช้</h6></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger fw-bold" href="#" onclick="logout()"><span class="material-icons align-middle">logout</span> ออกจากระบบ</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="board-scroll-area" id="board-content"></div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="shareModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered modal-sm"><div class="modal-content border-0 shadow" style="border-radius:16px;"><div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold">แชร์กระดานนี้</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body text-center pb-4"><p class="text-muted small mb-3">ให้เพื่อนสแกน QR Code หรือคัดลอกลิงก์เพื่อเข้าร่วม!</p><img id="qrCodeImage" src="" alt="QR Code" class="img-fluid rounded border p-2 mb-3 shadow-sm" style="width: 200px; height: 200px; background: white;"><div class="input-group shadow-sm"><input type="text" id="shareLinkInput" class="form-control bg-light" readonly style="font-size: 0.85rem;"><button class="btn btn-dark" onclick="copyShareLink()"><span class="material-icons align-middle" style="font-size:18px;">content_copy</span></button></div></div></div></div></div>
+
+  <div class="modal fade" id="addPostModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content post-modal-content shadow-lg">
+        <div class="post-modal-header border-bottom mb-2 pb-2">
+          <h5 class="modal-title fw-bold mb-0" id="postModalTitle">เพิ่มเนื้อหา</h5>
+          <div class="d-flex gap-2"><button type="button" class="btn btn-light rounded-circle p-2 d-flex align-items-center" data-bs-dismiss="modal"><span class="material-icons" style="font-size:18px;">close</span></button><button type="button" class="btn-publish active" id="publishBtn" onclick="submitPost()">เผยแพร่</button></div>
+        </div>
+        <div class="modal-body px-4 pt-2">
+          <form id="postForm">
+            <input type="file" id="postFile" class="d-none" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
+            <input type="file" id="postVideo" class="d-none" accept="video/*">
+            <input type="file" id="postImage" class="d-none" accept="image/*">
+            <input type="text" class="form-control input-subject" id="postSubject" placeholder="เรื่อง" autocomplete="off">
+            <div class="modal-attach-area" id="attachArea">
+              <div class="d-flex justify-content-center mb-2">
+                <div class="attach-icon-btn icon-file" onclick="document.getElementById('postFile').click()" title="แนบเอกสาร (สูงสุด 750KB)"><span class="material-icons">note_add</span></div>
+                <div class="attach-icon-btn text-white shadow-sm" style="background:#ef4444;" onclick="document.getElementById('postVideo').click()" title="แนบวิดีโอสั้น (สูงสุด 750KB)"><span class="material-icons">videocam</span></div>
+                <div class="attach-icon-btn icon-image" onclick="document.getElementById('postImage').click()" title="แนบรูปภาพ (สูงสุด 750KB)"><span class="material-icons">photo_camera</span></div>
+                <div class="attach-icon-btn icon-link" onclick="toggleLinkInput()" title="แนบลิงก์ Youtube/Website"><span class="material-icons">link</span></div>
+              </div>
+              <div id="linkInputContainer" class="d-none mt-3 px-3"><span class="input-group-text bg-white border-end-0"><span class="material-icons text-muted">link</span></span><input type="url" id="postLink" class="form-control border-start-0 ps-0" placeholder="วาง URL หรือลิงก์วิดีโอ YouTube ที่นี่"></div>
+              <div id="previewContainer" class="d-none mt-3 text-start bg-white p-2 rounded border shadow-sm position-relative">
+                <span class="material-icons text-danger position-absolute top-0 end-0 m-2" style="cursor:pointer;" onclick="clearAttachment()">close</span>
+                <div id="filePreview" class="d-none align-items-center gap-2 p-2"><span class="material-icons text-primary" style="font-size:30px;">insert_drive_file</span><span id="fileNameDisplay" class="text-truncate fw-bold"></span></div>
+                <div id="imagePreview" class="d-none text-center p-2"><img id="imgPreviewTag" src="" class="img-fluid rounded" style="max-height: 150px;"></div>
+                <div id="videoPreview" class="d-none text-center p-2"><video id="videoPreviewTag" src="" class="img-fluid rounded" style="max-height: 150px; width: 100%; background: #000;" controls autoplay muted loop playsinline></video></div>
+              </div>
+            </div>
+            <textarea class="form-control input-body" id="postMessage" rows="4" placeholder="เขียนอะไรที่น่าเหลือเชื่อหน่อยดีกว่า..."></textarea>
+            <div class="markdown-hint"><span class="material-icons" style="font-size: 14px;">info</span><span>รองรับการตกแต่ง: <b>**ตัวหนา**</b>, <em>*ตัวเอียง*</em>, หรือใส่ขีด <code>-</code> เพื่อทำลิสต์รายการ</span></div>
+          </form>
+        </div>
+        <div class="post-modal-footer">
+          <div class="d-flex gap-3 align-items-center">
+            <select id="postColor" class="form-select border-0 bg-light rounded-pill shadow-sm" style="width:auto;"><option value="note-white">⚪ สีขาว</option><option value="note-yellow">🟨 สีเหลือง</option><option value="note-blue">🟦 สีฟ้า</option><option value="note-green">🟩 สีเขียว</option><option value="note-pink">🟥 สีชมพู</option><option value="note-purple">🟪 สีม่วง</option></select>
+            <select id="targetSectionId" class="form-select border-0 bg-light rounded-pill shadow-sm" style="width:auto;"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="addSectionModal" tabindex="-1"><div class="modal-dialog modal-sm modal-dialog-centered"><div class="modal-content border-0 shadow" style="border-radius:12px;"><div class="modal-body p-4"><h5 class="fw-bold mb-3">เพิ่มส่วนใหม่</h5><form id="sectionForm"><input type="text" class="form-control mb-3" id="sectionName" placeholder="ชื่อส่วน..." required><button type="submit" class="btn btn-dark w-100 fw-bold rounded-pill" id="btnCreateSection">สร้างส่วน</button></form></div></div></div></div>
+  <div class="modal fade" id="commentModal" tabindex="-1"><div class="modal-dialog modal-dialog-centered"><div class="modal-content border-0 shadow" style="border-radius:12px;"><div class="modal-header border-0 pb-0"><h5 class="modal-title fw-bold">เพิ่มความคิดเห็น</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body bg-white border-top"><form id="commentForm"><textarea class="form-control mb-3" id="commentText" placeholder="แสดงความคิดเห็น..." rows="3" required></textarea><button type="submit" class="btn btn-dark w-100 fw-bold rounded-pill" id="btnSubmitComment">ส่งความคิดเห็น</button></form></div></div></div></div>
+  
+  <div class="offcanvas offcanvas-end offcanvas-settings" tabindex="-1" id="settingsSidebar"><div class="offcanvas-header pb-0 border-bottom"><h5 class="offcanvas-title fw-bold fs-4">การตั้งค่า</h5><button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button></div><div class="offcanvas-body"><form id="settingsForm">
+    <div class="setting-section">
+      <label class="setting-label">ชื่อ</label><input type="text" class="form-control mb-3" id="setBoardName" required>
+      <label class="setting-label">คำอธิบาย</label><textarea class="form-control mb-3" id="setBoardDesc" rows="2"></textarea>
+      
+      <label class="setting-label text-primary">สิทธิ์การเข้าถึง (Access Control)</label>
+      <select class="form-select mb-2" id="setAccessMode" onchange="togglePasswordInput()">
+        <option value="public">🌍 สาธารณะ (ทุกคนเข้าและโพสต์ได้)</option>
+        <option value="readonly">👁️ อ่านอย่างเดียว (เฉพาะคุณที่โพสต์ได้)</option>
+        <option value="password">🔐 เข้ารหัสผ่าน (ต้องใส่รหัสก่อนเข้า)</option>
+      </select>
+      <input type="text" class="form-control mb-3 d-none border-primary" id="setBoardPassword" placeholder="ตั้งรหัสผ่านที่นี่ (เช่น 1234)...">
+
+      <label class="setting-label mb-2">ลักษณะพื้นหลัง (Background)</label>
+      <div class="d-flex flex-wrap gap-2 mb-2" id="bgOptionContainer">
+        <div class="bg-option rounded-circle border border-2 border-white shadow-sm" data-bg="#f4d9dc" style="width: 32px; height: 32px; background: #f4d9dc;" onclick="selectBg('#f4d9dc')"></div>
+        <div class="bg-option rounded-circle border border-2 border-white shadow-sm" data-bg="#bfdbfe" style="width: 32px; height: 32px; background: #bfdbfe;" onclick="selectBg('#bfdbfe')"></div>
+        <div class="bg-option rounded-circle border border-2 border-white shadow-sm" data-bg="#bbf7d0" style="width: 32px; height: 32px; background: #bbf7d0;" onclick="selectBg('#bbf7d0')"></div>
+        <div class="bg-option rounded-circle border border-2 border-white shadow-sm" data-bg="#fef08a" style="width: 32px; height: 32px; background: #fef08a;" onclick="selectBg('#fef08a')"></div>
+        <div class="bg-option rounded-circle border border-2 border-white shadow-sm" data-bg="#e5e7eb" style="width: 32px; height: 32px; background: #e5e7eb;" onclick="selectBg('#e5e7eb')"></div>
+        
+        <div class="bg-option rounded border border-2 border-white shadow-sm" data-bg="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2000&auto=format&fit=crop" style="width: 50px; height: 32px; background: url('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=200&auto=format&fit=crop') center/cover;" title="ลายไม้" onclick="selectBg('https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2000&auto=format&fit=crop')"></div>
+        <div class="bg-option rounded border border-2 border-white shadow-sm" data-bg="https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=2000&auto=format&fit=crop" style="width: 50px; height: 32px; background: url('https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=200&auto=format&fit=crop') center/cover;" title="พาสเทลแอบสแตรกต์" onclick="selectBg('https://images.unsplash.com/photo-1557682250-33bd709cbe85?q=80&w=2000&auto=format&fit=crop')"></div>
+        <div class="bg-option rounded border border-2 border-white shadow-sm" data-bg="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2000&auto=format&fit=crop" style="width: 50px; height: 32px; background: url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=200&auto=format&fit=crop') center/cover;" title="กระดานดำ" onclick="selectBg('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=2000&auto=format&fit=crop')"></div>
+        <div class="bg-option rounded border border-2 border-white shadow-sm" data-bg="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=2000&auto=format&fit=crop" style="width: 50px; height: 32px; background: url('https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=200&auto=format&fit=crop') center/cover;" title="ภูเขา" onclick="selectBg('https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=2000&auto=format&fit=crop')"></div>
+        
+        <div class="d-flex align-items-center ms-1"><input type="color" class="form-control form-control-color border-0 p-0 shadow-sm" id="customBgColor" title="เลือกสีอื่นๆ" style="width:32px; height:32px; border-radius:50%;" onchange="selectBg(this.value)"></div>
+      </div>
+      
+      <input type="hidden" id="selectedBgValue" value="#f4d9dc">
+      <input type="text" class="form-control form-control-sm mb-3" id="customBgUrl" placeholder="...หรือวางลิงก์รูปภาพ (URL) ที่นี่" onchange="selectBg(this.value)">
+
+      <label class="setting-label mb-0">ขนาดโพสต์</label><div class="btn-group w-100"><input type="radio" class="btn-check" name="setPostSize" id="sizeStd" value="standard" checked><label class="btn btn-outline-primary" for="sizeStd">มาตรฐาน</label><input type="radio" class="btn-check" name="setPostSize" id="sizeWide" value="wide"><label class="btn btn-outline-primary" for="sizeWide">กว้าง</label></div>
+    </div>
+    <button type="submit" class="btn btn-dark w-100 rounded-pill fw-bold py-2" id="btnSaveSettings">บันทึกการตั้งค่า</button>
+  </form></div></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <!-- Firebase Configuration and Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, onSnapshot, addDoc, query, serverTimestamp, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Setup Firebase Environment
+    const userFirebaseConfig = {
+      apiKey: "AIzaSyCXv7QwFi85e4ejJNqpYmPgrREi6fD4MWw",
+      authDomain: "padlet-f4b15.firebaseapp.com",
+      databaseURL: "https://padlet-f4b15-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "padlet-f4b15",
+      storageBucket: "padlet-f4b15.firebasestorage.app",
+      messagingSenderId: "1041413513058",
+      appId: "1:1041413513058:web:28ea73a2567247f08e963b",
+      measurementId: "G-38NYFY5XG4"
+    };
+
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userFirebaseConfig;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    // Globals
+    let canvasUser = null;
+    let currentUserProfile = JSON.parse(localStorage.getItem('padlet_user')) || null;
+    let currentBoardId = null;
+    let currentBoardPassword = "";
+    let editingPostId = null;
+    let uploadedFile = null;
+    let currentPostIdForComment = null;
+    let boardUnsubs = []; // To hold Firestore listeners
+
+    // Data State
+    let allBoards = [];
+    let currentBoardSettings = {};
+    let sectionsData = [];
+    let loadedPostsData = [];
+    let currentBoardComments = [];
+    
+    // UI Helpers
+    window.showToast = function(msg, isError = false) {
+      const toast = document.getElementById('customToast');
+      document.getElementById('toastMessage').innerText = msg;
+      toast.style.background = isError ? '#dc3545' : '#333';
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    // Auth Initialization (Mandatory)
+    const initAuth = async () => {
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+      } catch (e) {
+        console.error("Auth error:", e);
+        showToast("เกิดข้อผิดพลาดในการเชื่อมต่อระบบ", true);
+      }
+    };
+    initAuth();
+
+    onAuthStateChanged(auth, (user) => {
+      canvasUser = user;
+      if (user) checkAppAuth();
+    });
+
+    // Helper to get collections path properly
+    const getCollectionPath = (colName) => `artifacts/${appId}/public/data/${colName}`;
+    const getColRef = (colName) => collection(db, getCollectionPath(colName));
+
+    // Router
+    window.showPage = function(pageId) {
+      document.querySelectorAll('.page-section').forEach(el => el.classList.add('d-none')); 
+      document.getElementById(`page-${pageId}`).classList.remove('d-none');
+      
+      if(pageId === 'login' || pageId === 'register' || pageId === 'forgot') { document.body.style.background = '#fce4e4'; } 
+      else if(pageId === 'home') { document.body.style.background = '#f4d9dc'; startBoardsListener(); } 
+      else if(pageId === 'admin') { document.body.style.background = '#f1f5f9'; loadAdminDashboard(); }
+      else if(pageId === 'password') { document.body.style.background = '#e0f2fe'; }
+      
+      if(pageId !== 'board') {
+         // Cleanup board listeners if we leave the board
+         boardUnsubs.forEach(unsub => unsub());
+         boardUnsubs = [];
+         currentBoardId = null;
+      }
+    }
+
+    function checkAppAuth() {
+      if(currentUserProfile) {
+        document.getElementById('displayUserName').innerText = currentUserProfile.name;
+        document.getElementById('displayUserAvatar').innerText = currentUserProfile.name.charAt(0).toUpperCase();
+        document.getElementById('boardUserNameMenu').innerText = currentUserProfile.name;
+        document.getElementById('boardUserAvatar').innerText = currentUserProfile.name.charAt(0).toUpperCase();
+        
+        if(currentUserProfile.role === 'admin') { 
+          document.getElementById('adminPanelBtn').classList.remove('d-none'); 
+        } else { 
+          document.getElementById('adminPanelBtn').classList.add('d-none'); 
+        }
+        
+        // Handle URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const boardParam = urlParams.get('board');
+        if (boardParam) { window.enterBoard(boardParam); } 
+        else { window.showPage('home'); }
+      } else { 
+        window.showPage('login'); 
+      }
+    }
+
+    window.logout = function() { 
+      localStorage.removeItem('padlet_user'); 
+      currentUserProfile = null; 
+      document.getElementById('loginForm').reset(); 
+      document.getElementById('registerForm').reset(); 
+      checkAppAuth(); 
+      showToast("ออกจากระบบแล้ว");
+    }
+
+    // --- App Logic : Authentication ---
+    document.getElementById('registerForm').addEventListener('submit', async function(e) { 
+      e.preventDefault(); 
+      if (!canvasUser) return;
+      const btn = document.getElementById('regBtn'); btn.innerText = 'กำลังสมัคร...'; btn.disabled = true; 
+      
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      
+      try {
+        const usersRef = getColRef('app_users');
+        // Simple check for existing email (Client side filtering as per rules)
+        const snap = await getDocs(usersRef);
+        let exists = false;
+        snap.forEach(doc => { if (doc.data().email === email) exists = true; });
+        
+        if (exists) {
+          showToast("อีเมลนี้ถูกใช้งานแล้ว", true);
+        } else {
+          // กำหนดสิทธิ์ Admin อัตโนมัติสำหรับอีเมล tazaizung1@gmail.com หรืออีเมลที่มีคำว่า admin
+          const role = (email.toLowerCase().includes('admin') || email.toLowerCase() === 'tazaizung1@gmail.com') ? 'admin' : 'user';
+          const newUser = { name, email, password, role: role, created_at: serverTimestamp() };
+          await addDoc(usersRef, newUser);
+          currentUserProfile = newUser;
+          localStorage.setItem('padlet_user', JSON.stringify(newUser));
+          showToast("สมัครสมาชิกสำเร็จ!");
+          checkAppAuth();
+        }
+      } catch (err) {
+        showToast("ข้อผิดพลาด: " + err.message, true);
+      }
+      btn.disabled = false; btn.innerText = 'สมัครสมาชิก'; 
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) { 
+      e.preventDefault(); 
+      if (!canvasUser) return;
+      const btn = document.getElementById('loginBtn'); btn.innerText = 'กำลังเข้าสู่ระบบ...'; btn.disabled = true; 
+      
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const usersRef = getColRef('app_users');
+        const snap = await getDocs(usersRef);
+        let foundUser = null;
+        let foundDocId = null;
+        snap.forEach(doc => { 
+          const data = doc.data();
+          if (data.email === email && data.password === password) {
+            foundUser = data; 
+            foundDocId = doc.id;
+          }
+        });
+
+        if (foundUser) {
+          // อัปเกรดเป็น Admin อัตโนมัติหากใช้อีเมล tazaizung1@gmail.com แต่ยังไม่ได้เป็น Admin
+          if (foundUser.email.toLowerCase() === 'tazaizung1@gmail.com' && foundUser.role !== 'admin') {
+            foundUser.role = 'admin';
+            await updateDoc(doc(db, getCollectionPath('app_users'), foundDocId), { role: 'admin' });
+          }
+
+          currentUserProfile = foundUser;
+          localStorage.setItem('padlet_user', JSON.stringify(foundUser));
+          showToast("เข้าสู่ระบบสำเร็จ!");
+          checkAppAuth();
+        } else {
+          showToast("อีเมลหรือรหัสผ่านไม่ถูกต้อง", true);
+        }
+      } catch (err) {
+         showToast("ข้อผิดพลาด: " + err.message, true);
+      }
+      btn.disabled = false; btn.innerText = 'เข้าสู่ระบบ'; 
+    });
+
+    document.getElementById('forgotForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      showToast("รีเซ็ตตัวอย่าง: กรุณาเข้าสู่ระบบด้วยรหัสผ่านใหม่ที่ตั้งไว้");
+      window.showPage('login');
+      document.getElementById('forgotForm').reset();
+    });
+
+    // --- Home Screen: Board List ---
+    let boardsListenerUnsub = null;
+    function startBoardsListener() {
+      if (!canvasUser) return;
+      document.getElementById('board-list').innerHTML = '<div class="spinner-border mx-auto"></div>';
+      
+      if(boardsListenerUnsub) boardsListenerUnsub();
+
+      boardsListenerUnsub = onSnapshot(getColRef('boards'), (snapshot) => {
+        allBoards = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderBoards(allBoards);
+      }, (err) => {
+        console.error("Board Listener Error", err);
+        showToast("โหลดข้อมูลกระดานล้มเหลว", true);
+      });
+    }
+
+    function renderBoards(boards) { 
+      const container = document.getElementById('board-list'); 
+      container.innerHTML = boards.length ? '' : '<p class="text-center text-muted">ยังไม่มีกระดานในระบบ</p>'; 
+      
+      boards.forEach(b => { 
+        const lockIcon = b.access_mode === 'password' ? '🔐' : (b.access_mode === 'readonly' ? '👁️' : ''); 
+        container.innerHTML += `
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm border-0" style="cursor:pointer; border-radius:16px; transition: transform 0.2s;" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="enterBoard('${b.id}')">
+            <div class="card-body text-center py-5 d-flex flex-column justify-content-center">
+              <h4 class="fw-bold text-dark">${lockIcon} ${b.board_name}</h4>
+              <p class="text-muted small">${b.description || ''}</p>
+              <button class="btn btn-light border rounded-pill px-4 mt-3 fw-bold align-self-center">เข้าสู่บอร์ด</button>
+            </div>
+          </div>
+        </div>`; 
+      }); 
+    }
+
+    window.openCreateBoardModal = function() { 
+      document.getElementById('createBoardForm').reset(); 
+      new bootstrap.Modal(document.getElementById('createBoardModal')).show(); 
+    }
+
+    document.getElementById('createBoardForm').addEventListener('submit', async function(e) { 
+      e.preventDefault(); 
+      if (!canvasUser) return;
+      const btn = document.getElementById('btnCreateBoardSubmit'); btn.disabled = true; btn.innerText = 'กำลังสร้าง...'; 
+      
+      try {
+        const newBoard = { 
+          board_name: document.getElementById('newBoardName').value, 
+          description: document.getElementById('newBoardDesc').value, 
+          created_by: currentUserProfile.name,
+          access_mode: 'public',
+          bg_color: '#f4d9dc',
+          created_date: Date.now()
+        };
+        const docRef = await addDoc(getColRef('boards'), newBoard);
+        
+        // Add Default Section
+        await addDoc(getColRef('sections'), {
+          board_id: docRef.id,
+          section_name: 'ไอเดียทั่วไป',
+          order: 0
+        });
+
+        bootstrap.Modal.getInstance(document.getElementById('createBoardModal')).hide(); 
+        showToast("สร้างกระดานสำเร็จ!");
+      } catch (err) {
+        showToast("สร้างไม่สำเร็จ: " + err.message, true);
+      }
+      btn.disabled = false; btn.innerText = 'เริ่มสร้างกระดาน'; 
+    });
+
+
+    // --- Board Inside ---
+    window.enterBoard = function(boardId) { 
+      currentBoardId = boardId; 
+      currentBoardPassword = ""; 
+      window.showPage('board'); 
+      startBoardContentListeners(); 
+    }
+
+    window.submitBoardPassword = function() { 
+      currentBoardPassword = document.getElementById('boardPasswordInput').value; 
+      window.showPage('board'); 
+      startBoardContentListeners(); 
+    }
+
+    function startBoardContentListeners() {
+      if(!canvasUser || !currentBoardId) return;
+      
+      document.getElementById('board-content').innerHTML = '<div class="w-100 text-center mt-5"><div class="spinner-border"></div><p class="mt-3 text-muted">กำลังโหลดข้อมูล...</p></div>';
+      
+      // Cleanup old listeners
+      boardUnsubs.forEach(unsub => unsub());
+      boardUnsubs = [];
+
+      // 1. Board Info Listener
+      const unsubBoard = onSnapshot(doc(db, getCollectionPath('boards'), currentBoardId), (docSnap) => {
+        if (!docSnap.exists()) {
+           document.getElementById('board-content').innerHTML = `<div class="text-danger w-100 text-center mt-5"><p>ไม่พบกระดานนี้ หรือกระดานถูกลบไปแล้ว</p></div>`;
+           return;
+        }
+        currentBoardSettings = { id: docSnap.id, ...docSnap.data() };
+        
+        // Check Access
+        if(currentBoardSettings.access_mode === 'password' && currentBoardSettings.board_password !== currentBoardPassword) {
+           if (currentBoardPassword !== "") { showToast("รหัสผ่านไม่ถูกต้อง", true); document.getElementById('boardPasswordInput').value = ''; }
+           window.showPage('password'); return;
+        }
+
+        updateBoardUI();
+      }, (err) => showToast("โหลดข้อมูลล้มเหลว: " + err.message, true));
+      boardUnsubs.push(unsubBoard);
+
+      // 2. Sections Listener
+      const unsubSections = onSnapshot(getColRef('sections'), (snapshot) => {
+        sectionsData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).filter(s => s.board_id === currentBoardId);
+        sectionsData.sort((a,b) => (a.order || 0) - (b.order || 0));
+        renderBoardSectionsAndPosts();
+      });
+      boardUnsubs.push(unsubSections);
+
+      // 3. Posts Listener
+      const unsubPosts = onSnapshot(getColRef('posts'), (snapshot) => {
+        loadedPostsData = snapshot.docs.map(d => ({id: d.id, ...d.data()})).filter(p => p.board_id === currentBoardId);
+        // Sort posts by date (newest first)
+        loadedPostsData.sort((a,b) => (b.date || 0) - (a.date || 0));
+        renderBoardSectionsAndPosts();
+      });
+      boardUnsubs.push(unsubPosts);
+
+      // 4. Comments Listener
+      const unsubComments = onSnapshot(getColRef('comments'), (snapshot) => {
+        currentBoardComments = snapshot.docs.map(d => ({id: d.id, ...d.data()})).filter(c => c.board_id === currentBoardId);
+        renderBoardSectionsAndPosts();
+      });
+      boardUnsubs.push(unsubComments);
+    }
+
+    function updateBoardUI() {
+      const isCreatorOrAdmin = (currentUserProfile && (currentUserProfile.name === currentBoardSettings.created_by || currentUserProfile.role === 'admin'));
+      
+      const settingsBtn = document.getElementById('boardSettingsBtn');
+      if (settingsBtn) {
+        if (isCreatorOrAdmin) settingsBtn.classList.remove('d-none'); 
+        else settingsBtn.classList.add('d-none'); 
+      }
+
+      window.applyAppBackground(currentBoardSettings.bg_color);
+      document.getElementById('current-board-title').innerText = currentBoardSettings.board_name || 'กระดานกิจกรรม'; 
+      document.getElementById('current-board-desc').innerText = currentBoardSettings.description || ''; 
+      
+      let modeBadge = '';
+      if(currentBoardSettings.access_mode === 'readonly') modeBadge = '<span class="badge bg-warning text-dark ms-2">👁️ โหมดอ่านอย่างเดียว</span>';
+      if(currentBoardSettings.access_mode === 'password') modeBadge = '<span class="badge bg-danger ms-2">🔐 มีรหัสผ่าน</span>';
+      
+      document.getElementById('board-meta').innerHTML = `${currentBoardSettings.created_by || 'Admin'} • อัปเดตล่าสุด Realtime ${modeBadge}`;
+    }
+
+    function renderBoardSectionsAndPosts() {
+      // Basic check if auth passed
+      if(currentBoardSettings.access_mode === 'password' && currentBoardSettings.board_password !== currentBoardPassword) return;
+
+      const container = document.getElementById('board-content'); 
+      const isCreatorOrAdmin = (currentUserProfile && (currentUserProfile.name === currentBoardSettings.created_by || currentUserProfile.role === 'admin'));
+      const isReadOnly = (currentBoardSettings.access_mode === 'readonly' && !isCreatorOrAdmin);
+      const isWide = currentBoardSettings.post_size === 'wide' ? 'size-wide' : '';
+
+      // Preserve scroll positions
+      const scrollPositions = {}; 
+      document.querySelectorAll('.column-posts-area').forEach(col => { scrollPositions[col.id] = col.scrollTop; });
+
+      container.innerHTML = ''; 
+
+      // Group Posts
+      let groupedPosts = {}; 
+      sectionsData.forEach(s => groupedPosts[s.id] = []);
+      loadedPostsData.forEach(p => { 
+        if(groupedPosts[p.section_id]) {
+           // pinned on top
+           if(p.is_pinned) groupedPosts[p.section_id].unshift(p);
+           else groupedPosts[p.section_id].push(p);
+        }
+      });
+
+      sectionsData.forEach(sec => { 
+        let addPostBtn = isReadOnly ? '' : `<div class="column-add-btn" onclick="openAddPostModal('${sec.id}')"><span class="material-icons align-middle">add</span></div>`;
+        let sectionTitleHTML = isReadOnly ? `<span class="section-title">${sec.section_name}</span>` : `<span class="section-title" contenteditable="true" spellcheck="false" onblur="saveSectionName('${sec.id}', this)" onkeydown="if(event.key === 'Enter') { this.blur(); event.preventDefault(); }">${sec.section_name}</span>`;
+        
+        let postsHtml = '';
+        (groupedPosts[sec.id] || []).forEach(post => {
+           postsHtml += createPostElementHTML(post, isWide, isReadOnly);
+        });
+
+        container.innerHTML += `<div class="column-wrapper"><div class="column-header">${sectionTitleHTML}</div>${addPostBtn}<div id="col-${sec.id}" class="column-posts-area">${postsHtml}</div></div>`; 
+      });
+      
+      if(!isReadOnly) { container.innerHTML += `<div class="add-section-btn shadow-sm" data-bs-toggle="modal" data-bs-target="#addSectionModal">+ เพิ่มส่วนใหม่</div>`; }
+
+      // Restore scroll
+      setTimeout(() => { for (const [id, scrollTop] of Object.entries(scrollPositions)) { const col = document.getElementById(id); if (col) col.scrollTop = scrollTop; } }, 50);
+      // Setup Drag and Drop
+      if (currentUserProfile && !isReadOnly) {
+        document.querySelectorAll('.column-posts-area').forEach(col => {
+          new Sortable(col, { 
+            group: 'shared', animation: 150, draggable: '.can-drag', ghostClass: 'opacity-50', 
+            onEnd: async function (evt) {
+              const itemEl = evt.item; const toCol = evt.to; const fromCol = evt.from;
+              if (toCol !== fromCol) {
+                const postId = itemEl.id.replace('card-', ''); const newSectionId = toCol.id.replace('col-', '');
+                itemEl.style.opacity = '0.5';
+                try {
+                  await updateDoc(doc(db, getCollectionPath('posts'), postId), { section_id: newSectionId });
+                } catch(e) {
+                  showToast("ย้ายไม่สำเร็จ: " + e.message, true);
+                }
+                itemEl.style.opacity = '1';
+              }
+            }
+          });
+        });
+      }
+    }
+
+    function createPostElementHTML(post, isWide, isReadOnly) {
+      const dateStr = window.getTimeAgo(new Date(post.date || Date.now())); 
+      const postComments = currentBoardComments.filter(c => c.post_id === post.id);
+      
+      let commentsHtml = ''; 
+      if (postComments.length > 0) { 
+        commentsHtml = '<div class="inline-comments-list">'; 
+        postComments.forEach(c => { commentsHtml += `<div class="inline-comment-item"><span class="inline-comment-name">${c.name}:</span>${c.comment}</div>`; }); 
+        commentsHtml += '</div>'; 
+      }
+      
+      let attachmentHtml = ''; 
+      if (post.file_data) { 
+        const isVid = (post.file_type && post.file_type.startsWith('video/')) || (post.file_name && /\.(mp4|webm|ogg|mov)$/i.test(post.file_name));
+        if (post.file_type && post.file_type.startsWith('image/')) { 
+          attachmentHtml = `<img src="${post.file_data}" class="post-image" loading="lazy">`; 
+        } else if (isVid) {
+          attachmentHtml = `<video src="${post.file_data}" class="post-image" controls autoplay muted loop playsinline style="max-height: 250px; width: 100%; object-fit: contain; background: black; border-radius: 8px; margin-bottom: 12px;" preload="auto"></video>`;
+        } else { 
+          attachmentHtml = `<div class="attachment-box shadow-sm"><span class="material-icons text-primary" style="font-size:30px;">insert_drive_file</span><div class="d-flex flex-column overflow-hidden"><span class="fw-bold">${post.file_name}</span><small class="text-muted" style="font-size:0.7rem;">(เอกสารแนบ - ดาวน์โหลดไม่ได้ในโหมด Demo)</small></div></div>`; 
+        } 
+      }
+      
+      let linkHtml = ''; 
+      if (post.link_url) { 
+        const ytId = window.getYouTubeId(post.link_url);
+        if (ytId) { linkHtml = `<div class="mb-3 rounded overflow-hidden shadow-sm" style="position: relative; padding-bottom: 56.25%; height: 0;"><iframe src="https://www.youtube.com/embed/${ytId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`; } 
+        else {
+          let domain = ''; try { domain = new URL(post.link_url).hostname.replace('www.', ''); } catch(e) { domain = post.link_url; }
+          linkHtml = `<a href="${post.link_url}" target="_blank" class="rich-link-card"><div class="rich-link-content"><div class="rich-link-title text-primary">${post.link_url}</div><div class="rich-link-url"><span class="material-icons" style="font-size:12px;">open_in_new</span> ${domain}</div></div></a>`;
+        }
+      }
+
+      marked.use({ breaks: true, gfm: true }); 
+      const parsedMessage = marked.parse(post.message || '');
+      const isPinned = post.is_pinned;
+      const pinIconHtml = isPinned ? `<div class="pinned-indicator"><span class="material-icons" style="font-size:16px;">push_pin</span></div>` : '';
+      const isOwnerOrAdmin = (currentUserProfile && (currentUserProfile.name === post.user_name || currentUserProfile.role === 'admin'));
+      const dragClass = (isOwnerOrAdmin && !isReadOnly) ? 'can-drag' : '';
+
+      let dropdownMenu = ''; 
+      if(isOwnerOrAdmin) { 
+        dropdownMenu = `
+          <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+            <li><a class="dropdown-item fw-bold text-success" href="#" onclick="togglePin('${post.id}', ${!isPinned})"><span class="material-icons" style="font-size: 18px;">${isPinned ? 'do_not_disturb_off' : 'push_pin'}</span> ${isPinned ? 'ยกเลิกปักหมุด' : 'ปักหมุดโพสต์'}</a></li>
+            <li><a class="dropdown-item edit-btn fw-bold" href="#" onclick="openEditPostModal('${post.id}')"><span class="material-icons text-primary" style="font-size: 18px;">edit</span> แก้ไขโพสต์</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item text-danger fw-bold" href="#" onclick="deletePostItem('${post.id}')"><span class="material-icons" style="font-size: 18px;">delete_outline</span> ลบโพสต์</a></li>
+          </ul>`; 
+      } else { dropdownMenu = `<ul class="dropdown-menu dropdown-menu-end shadow border-0"><li><span class="dropdown-item text-muted">คุณไม่มีสิทธิ์แก้ไข</span></li></ul>`; }
+
+      let addCommentBtn = isReadOnly ? '' : `<div class="inline-comment-btn" onclick="openCommentModal('${post.id}')"><div class="icon-circle"><span class="material-icons">add</span></div><span>เพิ่มความคิดเห็น</span></div>`;
+
+      return `
+        <div class="post-card ${post.color || 'note-white'} ${isWide} ${dragClass}" id="card-${post.id}">
+          ${pinIconHtml}
+          <div class="post-header">
+            <div class="d-flex align-items-center"><div class="avatar">${post.user_name.charAt(0).toUpperCase()}</div><div class="user-text"><h6>${post.user_name}</h6><small>${dateStr}</small></div></div>
+            <div class="dropdown"><span class="material-icons text-muted" style="cursor:pointer;" data-bs-toggle="dropdown">more_vert</span>${dropdownMenu}</div>
+          </div>
+          ${post.subject ? `<div class="post-subject">${post.subject}</div>` : ''}
+          <div class="post-message">${parsedMessage}</div>
+          ${attachmentHtml}${linkHtml}
+          <div class="post-actions border-top pt-2 mt-2">
+            <div class="d-flex gap-3">
+              <div class="action-icon" title="ถูกใจ" onclick="reactPost('${post.id}', 'like', this.querySelector('span'))"><span class="material-icons text-muted" style="font-size: 1.1rem;">thumb_up_off_alt</span><small class="fw-bold ms-1">${post.like_count || 0}</small></div>
+              <div class="action-icon" title="ชื่นชอบ" onclick="reactPost('${post.id}', 'heart', this.querySelector('span'))"><span class="material-icons text-muted" style="font-size: 1.1rem;">favorite_border</span><small class="fw-bold ms-1">${post.heart_count || 0}</small></div>
+            </div>
+            <div class="action-icon" title="ความคิดเห็น" onclick="openCommentModal('${post.id}')"><span class="material-icons text-muted" style="font-size: 1.1rem;">chat_bubble_outline</span><small class="ms-1">${postComments.length}</small></div>
+          </div>
+          ${commentsHtml}
+          ${addCommentBtn}
+        </div>`;
+    }
+
+    // --- Interactions ---
+    window.saveSectionName = async function(id, el) { 
+      const t=el.innerText.trim(); if(!t)el.innerText="หมวดหมู่"; 
+      el.style.opacity='0.5'; 
+      try {
+        await updateDoc(doc(db, getCollectionPath('sections'), id), { section_name: el.innerText.trim() });
+      } catch(e) {}
+      el.style.opacity='1';
+    }
+
+    document.getElementById('sectionForm').addEventListener('submit', async function(e){ 
+      e.preventDefault(); 
+      if(!canvasUser) return;
+      const btn=document.getElementById('btnCreateSection'); btn.disabled=true; 
+      try {
+        await addDoc(getColRef('sections'), {
+          board_id: currentBoardId,
+          section_name: document.getElementById('sectionName').value,
+          order: sectionsData.length
+        });
+        bootstrap.Modal.getInstance(document.getElementById('addSectionModal')).hide(); 
+        document.getElementById('sectionForm').reset(); 
+      } catch(err) { showToast("Error: " + err.message, true); }
+      btn.disabled=false;
+    });
+
+    window.openAddPostModal = function(sectionId) { 
+      editingPostId = null; 
+      document.getElementById('postModalTitle').innerText = "เพิ่มเนื้อหา"; 
+      document.getElementById('publishBtn').innerText = "เผยแพร่"; 
+      const sectionSelect = document.getElementById('targetSectionId'); 
+      sectionSelect.innerHTML = ''; 
+      sectionsData.forEach(s => { sectionSelect.innerHTML += `<option value="${s.id}" ${s.id === sectionId ? 'selected' : ''}>§ ${s.section_name}</option>`; }); 
+      window.clearAttachment(); 
+      document.getElementById('postForm').reset(); 
+      new bootstrap.Modal(document.getElementById('addPostModal')).show(); 
+    }
+
+    window.openEditPostModal = function(postId) { 
+      const post = loadedPostsData.find(p => p.id === postId); if(!post) return; 
+      editingPostId = postId; 
+      document.getElementById('postModalTitle').innerText = "แก้ไขเนื้อหา"; 
+      document.getElementById('publishBtn').innerText = "บันทึกแก้ไข"; 
+      const sectionSelect = document.getElementById('targetSectionId'); 
+      sectionSelect.innerHTML = ''; 
+      sectionsData.forEach(s => { sectionSelect.innerHTML += `<option value="${s.id}" ${s.id === post.section_id ? 'selected' : ''}>§ ${s.section_name}</option>`; }); 
+      window.clearAttachment(); 
+      document.getElementById('postSubject').value = post.subject || ''; 
+      document.getElementById('postMessage').value = post.message || ''; 
+      document.getElementById('postColor').value = post.color || 'note-white'; 
+      if(post.link_url) { 
+        document.getElementById('linkInputContainer').classList.remove('d-none'); 
+        document.getElementById('postLink').value = post.link_url; 
+      } 
+      new bootstrap.Modal(document.getElementById('addPostModal')).show(); 
+    }
+
+    window.submitPost = async function() { 
+      if(!canvasUser) return;
+      const btn = document.getElementById('publishBtn'); btn.innerText = editingPostId ? 'กำลังบันทึก...' : 'กำลังอัปโหลด...'; btn.disabled = true; 
+      
+      const postData = { 
+        board_id: currentBoardId, 
+        section_id: document.getElementById('targetSectionId').value, 
+        user_name: currentUserProfile.name, 
+        subject: document.getElementById('postSubject').value, 
+        message: document.getElementById('postMessage').value, 
+        link_url: document.getElementById('postLink').value, 
+        color: document.getElementById('postColor').value, 
+      }; 
+
+      // Note: In real app, we use Firebase Storage. For this memory/doc app, we store small base64 directly
+      if(uploadedFile) {
+         postData.file_name = uploadedFile.filename;
+         postData.file_type = uploadedFile.mimeType;
+         postData.file_data = uploadedFile.base64; // Data URL format
+      }
+
+      try {
+        if (editingPostId) { 
+          await updateDoc(doc(db, getCollectionPath('posts'), editingPostId), postData);
+          showToast("แก้ไขสำเร็จ");
+        } else { 
+          postData.date = Date.now();
+          postData.like_count = 0;
+          postData.heart_count = 0;
+          postData.is_pinned = false;
+          await addDoc(getColRef('posts'), postData);
+          showToast("โพสต์สำเร็จ");
+        } 
+        bootstrap.Modal.getInstance(document.getElementById('addPostModal')).hide(); 
+        window.clearAttachment(); 
+        document.getElementById('postForm').reset(); 
+      } catch (err) {
+        showToast("ข้อผิดพลาด: ไฟล์อาจจะใหญ่เกินไป (Max 500KB)", true);
+      }
+      btn.disabled = false; 
+    }
+
+    window.reactPost = async function(id, type, iconEl) { 
+      if(!canvasUser) return;
+      const post = loadedPostsData.find(p => p.id === id);
+      if(!post) return;
+      
+      let updateData = {};
+      if (type === 'like') updateData.like_count = (post.like_count || 0) + 1; 
+      else if (type === 'heart') updateData.heart_count = (post.heart_count || 0) + 1; 
+      
+      iconEl.parentElement.style.pointerEvents = 'none'; 
+      try {
+        await updateDoc(doc(db, getCollectionPath('posts'), id), updateData);
+      } catch(e) { iconEl.parentElement.style.pointerEvents = 'auto'; }
+    }
+
+    window.togglePin = async function(postId, status) { 
+      try { await updateDoc(doc(db, getCollectionPath('posts'), postId), { is_pinned: status }); }
+      catch(e) { showToast("Error: " + e.message, true); }
+    }
+
+    window.deletePostItem = async function(id) { 
+      if(confirm('คุณแน่ใจหรือไม่ที่จะลบโพสต์นี้?')) { 
+        document.getElementById(`card-${id}`).style.opacity='0.5'; 
+        try {
+          await deleteDoc(doc(db, getCollectionPath('posts'), id));
+          showToast("ลบโพสต์แล้ว");
+        } catch(e) { showToast("Error: " + e.message, true); }
+      } 
+    }
+
+    window.openCommentModal = function(id) { 
+      currentPostIdForComment = id; 
+      new bootstrap.Modal(document.getElementById('commentModal')).show(); 
+    }
+
+    document.getElementById('commentForm').addEventListener('submit', async function(e){ 
+      e.preventDefault(); 
+      if(!canvasUser) return;
+      const btn=document.getElementById('btnSubmitComment'); btn.disabled=true; 
+      try {
+        await addDoc(getColRef('comments'), {
+          post_id: currentPostIdForComment, 
+          board_id: currentBoardId,
+          name: currentUserProfile.name, 
+          comment: document.getElementById('commentText').value,
+          date: Date.now()
+        });
+        document.getElementById('commentText').value=''; 
+        bootstrap.Modal.getInstance(document.getElementById('commentModal')).show(); // hide?
+        bootstrap.Modal.getInstance(document.getElementById('commentModal')).hide();
+      } catch (err) {}
+      btn.disabled=false; 
+    });
+
+    // --- Settings & Utils ---
+    window.loadSettingsToForm = function() { 
+      document.getElementById('setBoardName').value = currentBoardSettings.board_name || ''; 
+      document.getElementById('setBoardDesc').value = currentBoardSettings.description || ''; 
+      if(currentBoardSettings.post_size) {
+        document.querySelector(`input[name="setPostSize"][value="${currentBoardSettings.post_size}"]`).checked = true; 
+      }
+      document.getElementById('setAccessMode').value = currentBoardSettings.access_mode || 'public';
+      document.getElementById('setBoardPassword').value = currentBoardSettings.board_password || '';
+      const bgVal = currentBoardSettings.bg_color || '#f4d9dc';
+      window.selectBg(bgVal); window.togglePasswordInput(); 
+    }
+
+    document.getElementById('settingsForm').addEventListener('submit', async function(e) { 
+      e.preventDefault(); 
+      if(!canvasUser) return;
+      const btn = document.getElementById('btnSaveSettings'); btn.disabled = true; 
+      const settingsData = { 
+        board_name: document.getElementById('setBoardName').value, 
+        description: document.getElementById('setBoardDesc').value, 
+        bg_color: document.getElementById('selectedBgValue').value, 
+        post_size: document.querySelector('input[name="setPostSize"]:checked').value,
+        access_mode: document.getElementById('setAccessMode').value, 
+        board_password: document.getElementById('setBoardPassword').value
+      }; 
+      try {
+        await updateDoc(doc(db, getCollectionPath('boards'), currentBoardId), settingsData);
+        showToast("บันทึกการตั้งค่าแล้ว");
+        bootstrap.Offcanvas.getInstance(document.getElementById('settingsSidebar')).hide();
+      } catch(err) { showToast("Error: " + err.message, true); }
+      btn.disabled = false; 
+    });
+
+    // File Handling
+    document.getElementById('postFile').addEventListener('change', handleFileSelect); 
+    document.getElementById('postImage').addEventListener('change', handleFileSelect);
+    document.getElementById('postVideo').addEventListener('change', handleFileSelect);
+    function handleFileSelect(e) { 
+      const file = e.target.files[0]; if (!file) return; 
+      
+      // Prevent massive base64 strings in Firestore document
+      if (file.size > 750000) {
+          alert("⚠️ วิดีโอหรือไฟล์มีขนาดใหญ่เกินไป (จำกัด 750KB)\n\nเนื่องจากข้อจำกัดของระบบฐานข้อมูลแบบทดสอบ กรุณาใช้ไฟล์ขนาดเล็ก หรือหากเป็นวิดีโอทั่วไป แนะนำให้อัปโหลดลง YouTube แล้วนำลิงก์มาวางในช่อง 'แนบลิงก์' แทนครับ");
+          e.target.value = ''; return;
+      }
+
+      window.clearAttachment(); 
+      document.getElementById('previewContainer').classList.remove('d-none'); 
+      const reader = new FileReader(); 
+      reader.onload = function(event) { 
+        uploadedFile = { filename: file.name, mimeType: file.type, base64: event.target.result }; 
+        const isVid = file.type.startsWith('video/') || /\.(mp4|webm|ogg|mov)$/i.test(file.name);
+        if (file.type.startsWith('image/')) { 
+          document.getElementById('imagePreview').classList.remove('d-none'); 
+          document.getElementById('imgPreviewTag').src = event.target.result; 
+        } else if (isVid) {
+          document.getElementById('videoPreview').classList.remove('d-none'); 
+          document.getElementById('videoPreviewTag').src = event.target.result; 
+        } else { 
+          document.getElementById('filePreview').classList.remove('d-none'); 
+          document.getElementById('filePreview').classList.add('d-flex'); 
+          document.getElementById('fileNameDisplay').innerText = file.name; 
+        } 
+      }; 
+      reader.readAsDataURL(file); 
+    }
+
+    // Admin Dashboard
+    async function loadAdminDashboard() { 
+      if(!canvasUser) return;
+      try {
+        const usersSnap = await getDocs(getColRef('app_users'));
+        const boardsSnap = await getDocs(getColRef('boards'));
+        const postsSnap = await getDocs(getColRef('posts'));
+        
+        document.getElementById('statUsers').innerText = usersSnap.size; 
+        document.getElementById('statBoards').innerText = boardsSnap.size; 
+        document.getElementById('statPosts').innerText = postsSnap.size; 
+
+        let boardHtml = ''; 
+        if(boardsSnap.empty) boardHtml = '<tr><td colspan="4" class="text-center text-muted">ยังไม่มีกระดานในระบบ</td></tr>'; 
+        boardsSnap.forEach(bDoc => { 
+          const b = bDoc.data();
+          const d = new Date(b.created_date || Date.now()).toLocaleDateString('th-TH'); 
+          boardHtml += `<tr><td class="fw-bold">${b.board_name}</td><td>${b.created_by || 'Admin'}</td><td>${d}</td><td><button class="btn btn-sm btn-outline-danger" onclick="adminRemoveBoard('${bDoc.id}')">ลบกระดาน</button></td></tr>`; 
+        }); 
+        document.getElementById('adminBoardTable').innerHTML = boardHtml; 
+
+        let userHtml = ''; 
+        usersSnap.forEach(uDoc => { 
+          const u = uDoc.data();
+          const roleBadge = u.role === 'admin' ? '<span class="badge bg-danger">Admin</span>' : '<span class="badge bg-secondary">User</span>'; 
+          const actionBtns = u.role === 'admin' ? 
+            `<button class="btn btn-sm btn-outline-warning me-1" onclick="adminChangeRole('${uDoc.id}', 'user')">ลดขั้น</button>` : 
+            `<button class="btn btn-sm btn-outline-success me-1" onclick="adminChangeRole('${uDoc.id}', 'admin')">ตั้งเป็น Admin</button>`;
+          const deleteBtn = `<button class="btn btn-sm btn-outline-danger" onclick="adminRemoveUser('${uDoc.id}')">ลบ</button>`;
+          
+          userHtml += `<tr><td>${u.name}</td><td>${u.email}</td><td>${roleBadge}</td><td>${actionBtns}${deleteBtn}</td></tr>`; 
+        }); 
+        document.getElementById('adminUserTable').innerHTML = userHtml; 
+      } catch(err) { showToast("โหลดข้อมูลแอดมินล้มเหลว", true); }
+    }
+
+    window.adminRemoveBoard = async function(boardId) { 
+      if(confirm('🚨 คำเตือน: คุณแน่ใจหรือไม่ที่จะลบกระดานนี้? ข้อมูลในนี้จะหายไป')) { 
+        try {
+          await deleteDoc(doc(db, getCollectionPath('boards'), boardId));
+          showToast('ลบกระดานสำเร็จ!'); 
+          loadAdminDashboard();
+        } catch(e) { showToast(e.message, true); }
+      } 
+    }
+
+    window.adminRemoveUser = async function(userId) { 
+      if(!canvasUser || currentUserProfile.role !== 'admin') return;
+      if(confirm('🚨 คำเตือน: ต้องการลบผู้ใช้งานนี้ออกจากระบบใช่หรือไม่?')) { 
+        try {
+          await deleteDoc(doc(db, getCollectionPath('app_users'), userId));
+          showToast('ลบผู้ใช้งานสำเร็จ!'); 
+          loadAdminDashboard();
+        } catch(e) { showToast(e.message, true); }
+      } 
+    }
+
+    window.adminChangeRole = async function(userId, newRole) { 
+      if(!canvasUser || currentUserProfile.role !== 'admin') return;
+      if(confirm(`ยืนยันการเปลี่ยนสิทธิ์เป็น ${newRole.toUpperCase()} ?`)) { 
+        try {
+          await updateDoc(doc(db, getCollectionPath('app_users'), userId), { role: newRole });
+          showToast('เปลี่ยนสิทธิ์สำเร็จ!'); 
+          loadAdminDashboard();
+        } catch(e) { showToast(e.message, true); }
+      } 
+    }
+
+    // Small UI Helpers Attached to Window
+    window.toggleLinkInput = () => { document.getElementById('linkInputContainer').classList.toggle('d-none'); document.getElementById('postLink').focus(); }
+    window.clearAttachment = () => { uploadedFile = null; document.getElementById('postFile').value = ''; document.getElementById('postImage').value = ''; document.getElementById('postVideo').value = ''; document.getElementById('previewContainer').classList.add('d-none'); document.getElementById('filePreview').classList.add('d-none'); document.getElementById('imagePreview').classList.add('d-none'); document.getElementById('videoPreview').classList.add('d-none'); document.getElementById('videoPreviewTag').src = ''; document.getElementById('postLink').value = ''; document.getElementById('linkInputContainer').classList.add('d-none');}
+    window.getYouTubeId = (url) => { const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/; const match = url.match(regExp); return (match && match[2].length === 11) ? match[2] : null; }
+    window.applyAppBackground = (bgVal) => { if (bgVal && bgVal.startsWith('http')) { document.body.style.background = `url('${bgVal}') center/cover fixed no-repeat`; } else { document.body.style.background = bgVal || '#f4d9dc'; } }
+    window.selectBg = (val) => { if (!val) return; document.getElementById('selectedBgValue').value = val; document.querySelectorAll('.bg-option').forEach(el => el.classList.remove('active')); const matchedEl = document.querySelector(`.bg-option[data-bg="${val}"]`); if (matchedEl) matchedEl.classList.add('active'); if (val.startsWith('#')) { document.getElementById('customBgColor').value = val; document.getElementById('customBgUrl').value = ''; } else if (val.startsWith('http')) { document.getElementById('customBgUrl').value = val; } window.applyAppBackground(val); }
+    window.togglePasswordInput = () => { const mode = document.getElementById('setAccessMode').value; const pwInput = document.getElementById('setBoardPassword'); if(mode === 'password') { pwInput.classList.remove('d-none'); } else { pwInput.classList.add('d-none'); } }
+    window.getTimeAgo = (d) => { const s=Math.floor((new Date()-d)/1000); let i=s/3600; if(i>1&&i<24)return `ประมาณ ${Math.floor(i)} ชั่วโมง ที่แล้ว`; i=s/60; if(i>1&&i<60)return `${Math.floor(i)} นาที ที่แล้ว`; if(s<60)return "เพิ่งโพสต์"; return d.toLocaleDateString('th-TH'); }
+    window.openShareModal = () => { 
+        const shareUrl = window.location.href.split('?')[0] + "?board=" + currentBoardId; 
+        document.getElementById('shareLinkInput').value = shareUrl; 
+        document.getElementById('qrCodeImage').src = "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=" + encodeURIComponent(shareUrl);
+        new bootstrap.Modal(document.getElementById('shareModal')).show(); 
+    }
+    window.copyShareLink = () => { const copyText = document.getElementById("shareLinkInput"); copyText.select(); document.execCommand("copy"); showToast("คัดลอกลิงก์แล้ว!"); }
+    
+    // ระบบ Export PDF
+    window.exportToPDF = function() {
+      showToast("กำลังสร้างไฟล์ PDF กรุณารอสักครู่ (อาจใช้เวลาสักพัก)...");
+      
+      // จัดรูปแบบชั่วคราวให้เหมาะสมกับการปริ้น
+      document.body.classList.add('pdf-export-mode');
+      
+      const element = document.getElementById('page-board');
+      const filename = (currentBoardSettings.board_name || 'Padlet_Board') + '_Report.pdf';
+      
+      const opt = {
+        margin:       0.4,
+        filename:     filename,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true, logging: false },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+
+      // ใช้ html2pdf ประมวลผลและดาวน์โหลด
+      html2pdf().set(opt).from(element).save().then(() => {
+          // คืนค่ารูปแบบกลับเป็นปกติเมื่อทำเสร็จ
+          document.body.classList.remove('pdf-export-mode');
+          showToast("ดาวน์โหลดไฟล์ PDF สำเร็จ!");
+      }).catch(err => {
+          document.body.classList.remove('pdf-export-mode');
+          showToast("เกิดข้อผิดพลาดในการสร้าง PDF", true);
+          console.error(err);
+      });
+    }
+  </script>
+</body>
+</html>
